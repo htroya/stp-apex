@@ -7,6 +7,8 @@ Objetivo: retomar la conexion a Oracle y APEX sin volver a perder tiempo investi
 Fecha de verificacion: `2026-03-15`
 
 - Repo local: `C:\HT\stp-apex`
+- Remoto GitHub: `https://github.com/htroya/stp-apex`
+- Rama publicada: `master`
 - Conexion visible en VS Code: `hhhhhtroya`
 - Usuario de base: `ADMIN`
 - Servicio configurado: `HHHHHTROYA_MEDIUM`
@@ -14,6 +16,21 @@ Fecha de verificacion: `2026-03-15`
 - `workspace_id`: `9007948669297661`
 - Version APEX: `24.2.14`
 - Apps de trabajo verificadas: `100` (`test`) y `101` (`test101`)
+
+## Estado funcional actual
+
+- app `100`: base de referencia para export
+- app `101`: clon funcional de `100`
+- pagina de login de `101`:
+  - `https://gc6116f6f9e2d14-hhhhhtroya.adb.us-ashburn-1.oraclecloudapps.com/ords/r/stp/test101/login`
+- verificacion HTTP:
+  - responde `200`
+- verificacion E2E:
+  - `tests/playwright/app101-smoke.spec.js` paso correctamente
+- paginas actuales de `101`:
+  - `0` Global Page
+  - `1` Home
+  - `9999` Login
 
 ## Ruta rapida recomendada
 
@@ -190,9 +207,10 @@ Uso practico:
 1. Probar `ORDS` con `select 'OK' from dual`.
 2. Confirmar `select version_no from apex_release`.
 3. Confirmar `select workspace, workspace_id from apex_workspaces where workspace = 'STP'`.
-4. Ejecutar el SQL de negocio o APEX por `ORDS`.
-5. Solo si hace falta UI, abrir VS Code Oracle y usar la conexion `hhhhhtroya`.
-6. Solo si hace falta terminal interactiva, usar `SQLcl`.
+4. Leer `README.md` y este playbook antes de tocar nada.
+5. Ejecutar el SQL de negocio o APEX por `ORDS`.
+6. Solo si hace falta UI, abrir VS Code Oracle y usar la conexion `hhhhhtroya`.
+7. Solo si hace falta terminal interactiva, usar `SQLcl`.
 
 ## Crear una app APEX
 
@@ -219,6 +237,26 @@ En este repo ya existe un ejemplo real:
 
 - export SQL completo de la app `100`: `C:\HT\stp-apex\apex\exports\f100.sql`
 - export split de referencia de la app `100`: `C:\HT\stp-apex\f100.zip`
+
+## Crear una pagina nueva vacia
+
+Si el objetivo es agregar una pagina simple a una app ya existente, no hace falta reinvestigar APIs internas.
+
+Ruta recomendada:
+
+1. Abrir `App Builder`.
+2. Entrar a la app, por ejemplo `Application 101`.
+3. Click en `Create Page`.
+4. Elegir `Blank Page`.
+5. Definir numero de pagina, nombre y alias.
+6. Crear la pagina.
+7. Ejecutar y validar.
+
+Motivo:
+
+- el wizard de APEX es mas rapido para paginas nuevas aisladas
+- el repo ya deja automatizado export/import de aplicaciones completas
+- no conviene gastar tiempo automatizando creacion de una pagina vacia si el wizard la resuelve en segundos
 
 ## Exportar una app
 
@@ -369,6 +407,38 @@ Nota:
 
 - si no defines `APP_USERNAME` y `APP_PASSWORD`, solo corre el smoke publico del login
 - el smoke publico de la app `101` ya fue ejecutado exitosamente despues del fix del import
+
+## Git y push
+
+Remoto validado:
+
+- `https://github.com/htroya/stp-apex`
+
+Estado actual:
+
+- `origin/master` ya existe
+- el push inicial del repo ya se realizo correctamente
+
+Comandos de rutina:
+
+```powershell
+git status
+git add .
+git commit -m "Mensaje claro"
+git push
+```
+
+Si el push falla con `Repository not found`:
+
+- revisar que el repo exista en GitHub
+- revisar la URL de `origin`
+- volver a probar con:
+
+```powershell
+git remote -v
+git remote set-url origin https://github.com/htroya/stp-apex
+git push -u origin master
+```
 
 ## Seguridad
 

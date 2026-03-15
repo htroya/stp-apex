@@ -14,8 +14,10 @@ Ese playbook deja documentado:
 - la URL ya validada de `REST Enabled SQL`
 - el `workspace_id` de `STP`
 - la version APEX instalada
+- el remoto GitHub ya validado
 - los limites de `SQLcl` y de la sesion de VS Code
 - las rutas locales del wallet y de `DBTools`
+- el flujo exacto para crear, exportar, importar y probar una app APEX
 
 ## Scripts reutilizables
 
@@ -39,6 +41,10 @@ Flujo recomendado:
 - Repo local creado en `C:\HT\stp-apex`.
 - Remoto Git configurado:
   - `origin = https://github.com/htroya/stp-apex.git`
+- Rama actual:
+  - `master`
+- Push ya realizado a GitHub:
+  - `origin/master`
 - Extension instalada en VS Code:
   - `Oracle SQL Developer for VS Code`
 - Conexion Oracle ya existente en VS Code:
@@ -57,6 +63,10 @@ Flujo recomendado:
 - App `101` (`test101`) fue recreada desde ese export SQL completo y quedo con paginas `0`, `1` y `9999`.
 - La URL de login de la app `101` ya responde `200` y carga `P9999_USERNAME` y `P9999_PASSWORD`.
 - El smoke de Playwright `tests/playwright/app101-smoke.spec.js` ya pasa contra la app `101`.
+- Estado actual de paginas en `101`:
+  - `0` Global Page
+  - `1` Home
+  - `9999` Login
 - Conclusion operativa:
   - para clonar apps por automatizacion, usar export SQL completo.
   - el import split por `ORDS` queda como alternativa avanzada y requiere validacion extra.
@@ -186,6 +196,24 @@ Convencion sugerida:
 
 - `apex/exports/f100.sql` si se exporta en archivo unico
 - o formato split si luego se automatiza con SQLcl/APEX export
+
+## Crear una pagina nueva rapido
+
+Si la necesidad es agregar una pagina vacia a una app ya existente, la via mas rapida es la UI de APEX:
+
+1. Abrir `App Builder`.
+2. Entrar a la aplicacion, por ejemplo `101`.
+3. Click en `Create Page`.
+4. Elegir `Blank Page`.
+5. Definir `Page Number`, `Name` y `Navigation`.
+6. Crear la pagina.
+7. Ejecutar la app y validar la nueva ruta.
+
+Nota:
+
+- la automatizacion de export/import ya esta cerrada
+- la creacion automatizada de paginas individuales no se dejo como flujo principal
+- para una pagina vacia simple, el wizard de APEX sigue siendo lo mas rapido y menos riesgoso
 
 ## Estado de automatizacion
 

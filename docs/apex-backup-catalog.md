@@ -35,13 +35,31 @@ Patron comun verificado:
 Script local agregado para repetir este analisis:
 
 - [analyze-backups.py](/C:/HT/stp-apex/scripts/apex/analyze-backups.py)
+- [apex-zip-reference-map.md](/C:/HT/stp-apex/docs/apex-zip-reference-map.md)
 
 Ejemplo:
 
 ```powershell
 python .\scripts\apex\analyze-backups.py --format markdown
 python .\scripts\apex\analyze-backups.py --format json
+python .\scripts\apex\analyze-backups.py --format markdown --page-limit 0
+python .\scripts\apex\analyze-backups.py --contains NATIVE_IG --format markdown --page-limit 0
+python .\scripts\apex\analyze-backups.py --contains create_map_region_layer --format markdown --page-limit 0
+python .\scripts\apex\analyze-backups.py --contains create_search_region_source --format markdown --page-limit 0
 ```
+
+Salida nueva del analizador:
+
+- `capability tags` para cada backup
+- `page index` con `page file -> page name -> alias`
+- categorias de `shared_components`
+- categorias y archivos de `supporting_objects`
+
+Regla operativa:
+
+- para una respuesta rapida, empezar por [apex-zip-reference-map.md](/C:/HT/stp-apex/docs/apex-zip-reference-map.md)
+- usar este catalogo para entender contexto y alcance
+- usar el analizador solo para confirmar pagina exacta, supporting objects y token tecnico
 
 ## Catalogo por respaldo
 

@@ -9,7 +9,9 @@ Fecha de verificacion: `2026-03-21`
 1. [oracle-connection-playbook.md](/C:/HT/stp-apex/docs/oracle-connection-playbook.md)
 2. [apex-backup-catalog.md](/C:/HT/stp-apex/docs/apex-backup-catalog.md)
 3. [README.md](/C:/HT/stp-apex/README.md)
-4. [apex-e2e-playbook.md](/C:/HT/stp-apex/docs/apex-e2e-playbook.md)
+4. [apex-external-patterns-playbook.md](/C:/HT/stp-apex/docs/apex-external-patterns-playbook.md)
+5. [apex-e2e-playbook.md](/C:/HT/stp-apex/docs/apex-e2e-playbook.md)
+6. [apex-zip-reference-map.md](/C:/HT/stp-apex/docs/apex-zip-reference-map.md)
 
 ## Flujo recomendado de trabajo
 
@@ -28,17 +30,19 @@ No arrancar con APIs internas a ciegas.
 Secuencia fija:
 
 1. identificar la familia del componente: `IG`, `IR`, `Cards`, `Map`, `Workflow`, `Search`, `Calendar`, `Tree`, `Chart`
-2. buscar el backup patron con el inventario local
-3. ubicar la pagina exacta dentro del zip
-4. copiar el bloque completo `create_*` en el orden real de `install.sql`
-5. adaptar app id, page id, owner, tabla, alias y nombres
-6. ejecutar el SQL en la app destino
-7. validar metadata en `apex_application_pages` o vistas equivalentes
-8. validar la pagina por navegador o Playwright
+2. decidir si el patron dominante vive en un zip o en [apex-external-patterns-playbook.md](/C:/HT/stp-apex/docs/apex-external-patterns-playbook.md)
+3. si vive en zip, buscar el backup patron en [apex-zip-reference-map.md](/C:/HT/stp-apex/docs/apex-zip-reference-map.md)
+4. ubicar la pagina exacta dentro del zip
+5. copiar el bloque completo `create_*` en el orden real de `install.sql`
+6. adaptar app id, page id, owner, tabla, alias y nombres
+7. ejecutar el SQL en la app destino
+8. validar metadata en `apex_application_pages` o vistas equivalentes
+9. validar la pagina por navegador o Playwright
 
 Comandos de busqueda rapida ya soportados por el repo:
 
 ```powershell
+python .\scripts\apex\analyze-backups.py --format markdown --page-limit 0
 python .\scripts\apex\analyze-backups.py --contains NATIVE_IG --format markdown
 python .\scripts\apex\analyze-backups.py --contains create_map_region_layer --format markdown
 python .\scripts\apex\analyze-backups.py --contains NATIVE_SEARCH_REGION --contains create_search_region_source --match-mode all --format markdown
@@ -50,6 +54,41 @@ Lectura del resultado:
 - si aparece el zip correcto, ese zip es la fuente
 - si aparecen varios, elegir la pagina mas simple que ya resuelva el caso
 - si no aparece ninguno, recien ahi mirar `f115.zip` para referencias de layout o theme
+
+## Router rapido de pedidos
+
+Antes de abrir un zip, usar el siguiente atajo mental:
+
+- si el usuario pide una base minima o login, ir a `f100.zip`
+- si pide una pagina vacia, ir a `f101.zip`
+- si pide cards, ir a `f102.zip`
+- si pide charts, ir a `f103.zip`
+- si pide data loading, ir a `f105.zip`
+- si pide dynamic actions, ir a `f106.zip`
+- si pide file upload/download, ir a `f107.zip`
+- si pide email auth, ir a `f108.zip`
+- si pide IG editable, ir a `f109.zip`
+- si pide maps, ir a `f110.zip`
+- si pide master-detail, ir a `f111.zip`
+- si pide reporting, ir a `f112.zip`
+- si pide trees, ir a `f113.zip`
+- si pide REST Data Sources, ir a `f114.zip`
+- si pide theme/layout/navigation, ir a `f115.zip`
+- si pide vector search o AI provider, ir a `f116.zip`
+- si pide workflow/approvals/tasks, ir a `f117.zip`
+- si pide RTE con imagenes, ir a `f118.zip`
+- si pide una app de referencia mixta y realista, ir a `f119.zip`
+- si pide mobile-first/PWA estilo consumer, ir a `f120.zip`
+- si pide PWA pura, ir a `f121.zip`
+- si pide calendars, ir a `f122.zip`
+- si pide application search, ir a `f123.zip`
+- si pide collections, ir a `f124.zip`
+
+Ese resumen no reemplaza el mapa completo: [apex-zip-reference-map.md](/C:/HT/stp-apex/docs/apex-zip-reference-map.md) sigue siendo la fuente principal para elegir pagina exacta.
+
+Tampoco reemplaza los patrones externos:
+
+- demos enfocadas, UX, theming, REST sync y trabajo multi-dev se enrutan primero por [apex-external-patterns-playbook.md](/C:/HT/stp-apex/docs/apex-external-patterns-playbook.md)
 
 ## Export: flujo ya validado
 

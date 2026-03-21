@@ -9,7 +9,9 @@ Antes de volver a investigar la conexion, revisar:
 - `docs/oracle-connection-playbook.md`
 - `docs/apex-backup-catalog.md`
 - `docs/apex-component-playbook.md`
+- `docs/apex-external-patterns-playbook.md`
 - `docs/apex-e2e-playbook.md`
+- `docs/apex-zip-reference-map.md`
 
 Ese playbook deja documentado:
 
@@ -22,12 +24,16 @@ Ese playbook deja documentado:
 - las rutas locales del wallet y de `DBTools`
 - el flujo exacto para crear, exportar, importar y probar una app APEX
 - como ejecutar Playwright contra la app `101` y su `Interactive Grid`
+- como enrutar un pedido nuevo a un zip y pagina concretos sin volver a explorar todo
+- como enrutar pedidos que salen de los zips hacia patrones aprendidos en `oracleapex.com`, Pretius y Traust
 
 Los documentos nuevos agregan:
 
 - el catalogo completo de los respaldos `f100.zip` a `f124.zip`
 - que componente vive en cada backup
 - que export conviene usar como patron para cards, charts, IG, maps, workflow, PWA, etc.
+- el mapa rapido `pedido -> zip -> pagina`
+- un playbook de patrones externos para demos, REST sync, theming, UX, collections y DevOps APEX
 - la receta exacta para recrear la app `101` con un Interactive Grid editable sobre `WKSP_STP.STP_PAGE2_GRID`
 
 ## Scripts reutilizables
@@ -61,11 +67,14 @@ npm run test:app101
 
 Flujo de analisis recomendado:
 
-1. inventariar respaldos con `python .\scripts\apex\analyze-backups.py --format markdown`
-2. leer `docs/apex-backup-catalog.md`
-3. leer `docs/apex-component-playbook.md`
-4. elegir el zip fuente del componente
-5. adaptar el SQL del componente sobre la app destino
+1. leer `docs/apex-zip-reference-map.md`
+2. leer `docs/apex-external-patterns-playbook.md` si el pedido implica demos publicas, UX, theming, REST sync, collections o practicas de equipo
+3. confirmar el zip y la pagina exacta
+4. correr `python .\scripts\apex\analyze-backups.py --format markdown --page-limit 0` si hace falta el indice completo
+5. correr `python .\scripts\apex\analyze-backups.py --contains <token> --format markdown --page-limit 0` si el pedido menciona un componente tecnico puntual
+6. leer `docs/apex-backup-catalog.md`
+7. leer `docs/apex-component-playbook.md`
+8. adaptar el SQL del componente sobre la app destino
 
 ## Estado actual
 

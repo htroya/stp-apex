@@ -4,7 +4,7 @@ Objetivo: retomar la conexion a Oracle y APEX sin volver a perder tiempo investi
 
 ## Estado verificado
 
-Fecha de verificacion: `2026-03-15`
+Fecha de verificacion: `2026-03-21`
 
 - Repo local: `C:\HT\stp-apex`
 - Remoto GitHub: `https://github.com/htroya/stp-apex`
@@ -15,22 +15,31 @@ Fecha de verificacion: `2026-03-15`
 - Workspace APEX: `STP`
 - `workspace_id`: `9007948669297661`
 - Version APEX: `24.2.14`
-- Apps de trabajo verificadas: `100` (`test`) y `101` (`test101`)
+- Apps de trabajo verificadas: `100` (`test`) y `102` a `124` (muestras Oracle importadas)
 
 ## Estado funcional actual
 
-- app `100`: base de referencia para export
-- app `101`: clon funcional de `100`
-- pagina de login de `101`:
-  - `https://gc6116f6f9e2d14-hhhhhtroya.adb.us-ashburn-1.oraclecloudapps.com/ords/r/stp/test101/login`
-- verificacion HTTP:
-  - responde `200`
-- verificacion E2E:
-  - `tests/playwright/app101-smoke.spec.js` paso correctamente
-- paginas actuales de `101`:
-  - `0` Global Page
-  - `1` Home
-  - `9999` Login
+- app `100`: base minima de referencia para export/import
+- apps `102` a `124`: catalogo vivo de componentes Oracle APEX
+- app `101`: no existe actualmente y debe recrearse desde `f100.sql` cuando se necesite
+- tabla de trabajo ya verificada para el IG de `101`:
+  - `WKSP_STP.STP_PAGE2_GRID`
+  - columnas: `ID`, `NAME`
+  - PK activa sobre `ID`
+  - filas semilla: `Fila 1`, `Fila 2`
+
+## Documentacion adicional obligatoria
+
+Antes de analizar o clonar componentes, leer:
+
+- `docs/apex-backup-catalog.md`
+- `docs/apex-component-playbook.md`
+
+Esos documentos dejan resuelto:
+
+- que contiene cada respaldo `f100.zip` a `f124.zip`
+- que app sirve de referencia para cada componente APEX
+- como reconstruir la app `101` con un `Interactive Grid` editable
 
 ## Ruta rapida recomendada
 
@@ -237,6 +246,8 @@ En este repo ya existe un ejemplo real:
 
 - export SQL completo de la app `100`: `C:\HT\stp-apex\apex\exports\f100.sql`
 - export split de referencia de la app `100`: `C:\HT\stp-apex\f100.zip`
+- snippet local para la pagina `2` editable de la app `101`: `C:\HT\stp-apex\apex\snippets\app101_page_00002_editable_grid.sql`
+- script local para asegurar la tabla del grid: `C:\HT\stp-apex\db\install\002_wksp_stp_page2_grid.sql`
 
 ## Crear una pagina nueva vacia
 

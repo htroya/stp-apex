@@ -7,6 +7,8 @@ Repo base para trabajar con Oracle Database y Oracle APEX desde VS Code para el 
 Antes de volver a investigar la conexion, revisar:
 
 - `docs/oracle-connection-playbook.md`
+- `docs/apex-backup-catalog.md`
+- `docs/apex-component-playbook.md`
 
 Ese playbook deja documentado:
 
@@ -19,12 +21,20 @@ Ese playbook deja documentado:
 - las rutas locales del wallet y de `DBTools`
 - el flujo exacto para crear, exportar, importar y probar una app APEX
 
+Los documentos nuevos agregan:
+
+- el catalogo completo de los respaldos `f100.zip` a `f124.zip`
+- que componente vive en cada backup
+- que export conviene usar como patron para cards, charts, IG, maps, workflow, PWA, etc.
+- la receta exacta para recrear la app `101` con un Interactive Grid editable sobre `WKSP_STP.STP_PAGE2_GRID`
+
 ## Scripts reutilizables
 
 Se agregaron scripts para no repetir trabajo:
 
 - `scripts/apex/export-app.ps1`
 - `scripts/apex/import-app.ps1`
+- `scripts/apex/analyze-backups.py`
 - `tests/playwright/app101-smoke.spec.js`
 - `playwright.config.js`
 
@@ -35,6 +45,14 @@ Flujo recomendado:
 3. Exportarla con `scripts/apex/export-app.ps1`.
 4. Crear otra app a partir de ese export con `scripts/apex/import-app.ps1`.
 5. Validar con Playwright al menos la carga del login.
+
+Flujo de analisis recomendado:
+
+1. inventariar respaldos con `python .\scripts\apex\analyze-backups.py --format markdown`
+2. leer `docs/apex-backup-catalog.md`
+3. leer `docs/apex-component-playbook.md`
+4. elegir el zip fuente del componente
+5. adaptar el SQL del componente sobre la app destino
 
 ## Estado actual
 
@@ -60,16 +78,13 @@ Flujo recomendado:
 
 - App `100` (`test`) existe en el workspace `STP`.
 - El export base funcional disponible en el repo se genera como `apex/exports/f100.sql`.
-- App `101` (`test101`) fue recreada desde ese export SQL completo y quedo con paginas `0`, `1` y `9999`.
-- La URL de login de la app `101` ya responde `200` y carga `P9999_USERNAME` y `P9999_PASSWORD`.
-- El smoke de Playwright `tests/playwright/app101-smoke.spec.js` ya pasa contra la app `101`.
-- Estado actual de paginas en `101`:
-  - `0` Global Page
-  - `1` Home
-  - `9999` Login
+- El respaldo `f101.zip` existe, pero su alias exportado quedo inconsistente (`TEST100`), asi que no debe usarse como base canonica.
+- Las apps `102` a `124` quedaron importadas en el workspace `STP` y funcionan como biblioteca viva de componentes.
+- La app `101` debe recrearse desde `f100.sql` cuando se necesite la version con `Interactive Grid`.
 - Conclusion operativa:
   - para clonar apps por automatizacion, usar export SQL completo.
   - el import split por `ORDS` queda como alternativa avanzada y requiere validacion extra.
+  - para estudiar componentes, el split `.zip` es la mejor fuente de verdad.
 
 ## Decision sobre GitHub
 
@@ -101,6 +116,10 @@ Si por cualquier razon no se quiere usar GitHub, el repo local sigue sirviendo. 
 ## Archivos existentes
 
 - `db/install/001_stp_base.sql`
+- `db/install/002_wksp_stp_page2_grid.sql`
+- `apex/snippets/app101_page_00002_editable_grid.sql`
+- `docs/apex-backup-catalog.md`
+- `docs/apex-component-playbook.md`
 - `docs/next-steps-apex.md`
 - `.gitignore`
 

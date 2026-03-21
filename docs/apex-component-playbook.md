@@ -9,6 +9,7 @@ Fecha de verificacion: `2026-03-21`
 1. [oracle-connection-playbook.md](/C:/HT/stp-apex/docs/oracle-connection-playbook.md)
 2. [apex-backup-catalog.md](/C:/HT/stp-apex/docs/apex-backup-catalog.md)
 3. [README.md](/C:/HT/stp-apex/README.md)
+4. [apex-e2e-playbook.md](/C:/HT/stp-apex/docs/apex-e2e-playbook.md)
 
 ## Flujo recomendado de trabajo
 
@@ -19,6 +20,36 @@ Fecha de verificacion: `2026-03-21`
 5. Adaptar owner, nombre de tabla, IDs y alias.
 6. Importar la app o crear la pagina faltante.
 7. Validar en la base y luego en APEX.
+
+## Protocolo para crear cualquier componente sin reinvestigar
+
+No arrancar con APIs internas a ciegas.
+
+Secuencia fija:
+
+1. identificar la familia del componente: `IG`, `IR`, `Cards`, `Map`, `Workflow`, `Search`, `Calendar`, `Tree`, `Chart`
+2. buscar el backup patron con el inventario local
+3. ubicar la pagina exacta dentro del zip
+4. copiar el bloque completo `create_*` en el orden real de `install.sql`
+5. adaptar app id, page id, owner, tabla, alias y nombres
+6. ejecutar el SQL en la app destino
+7. validar metadata en `apex_application_pages` o vistas equivalentes
+8. validar la pagina por navegador o Playwright
+
+Comandos de busqueda rapida ya soportados por el repo:
+
+```powershell
+python .\scripts\apex\analyze-backups.py --contains NATIVE_IG --format markdown
+python .\scripts\apex\analyze-backups.py --contains create_map_region_layer --format markdown
+python .\scripts\apex\analyze-backups.py --contains NATIVE_SEARCH_REGION --contains create_search_region_source --match-mode all --format markdown
+python .\scripts\apex\analyze-backups.py --contains create_workflow_activity --format markdown
+```
+
+Lectura del resultado:
+
+- si aparece el zip correcto, ese zip es la fuente
+- si aparecen varios, elegir la pagina mas simple que ya resuelva el caso
+- si no aparece ninguno, recien ahi mirar `f115.zip` para referencias de layout o theme
 
 ## Export: flujo ya validado
 
@@ -95,6 +126,7 @@ Uso:
 
 - crear una app minima con `Home` y `Login`
 - despues agregar paginas nuevas encima
+- reutilizar su `Navigation Menu` como patron para exponer paginas nuevas sin depender de URLs manuales
 
 ### Pagina vacia
 
@@ -107,6 +139,29 @@ Uso:
 
 - crear una pagina vacia con `create_page`
 - punto de partida para injertar regiones nuevas
+
+### Navegacion y accesos directos
+
+Referencias:
+
+- `f100.zip`
+- `f115.zip`
+
+Patron:
+
+1. `shared_components/navigation/lists/navigation_menu`
+2. `create_list_item`
+3. ruta a pagina con `f?p=` y sustituciones `APP_ID`, `APP_SESSION`, `DEBUG`
+
+Regla operativa:
+
+- si una pagina nueva debe ser accesible para el usuario, no alcanza con crear la page
+- hay que agregarla al `Navigation Menu` o a otro componente navegable
+- en Universal Theme el menu lateral puede renderizar las entradas como `treeitem`, no como `link`
+
+Referencia local creada para este repo:
+
+- [app101_navigation_page2.sql](/C:/HT/stp-apex/apex/snippets/app101_navigation_page2.sql)
 
 ### Interactive Grid editable
 
@@ -135,6 +190,7 @@ Requisitos de tabla para IG editable:
 
 - estar en el owner de la app, aqui `WKSP_STP`
 - tener PK real
+- si el `IG` puede enviar `NULL` al insertar, la PK numerica debe aceptar autogeneracion `BY DEFAULT ON NULL AS IDENTITY`
 - la columna PK suele ir como `NATIVE_HIDDEN`
 - el proceso `NATIVE_IG_DML` se apoya en la fuente de la region
 
@@ -337,13 +393,36 @@ Ruta elegida y ya documentada:
 1. importar `f100.sql` como app `101`
 2. asegurar tabla `WKSP_STP.STP_PAGE2_GRID`
 3. crear `page 2` como pagina nueva
-4. montar un `NATIVE_IG` editable sobre `WKSP_STP.STP_PAGE2_GRID`
+4. agregar la entrada `Editable Grid` al `Navigation Menu`
+5. montar un `NATIVE_IG` editable sobre `WKSP_STP.STP_PAGE2_GRID`
+6. validar por Playwright `login`, `home` y `editable-grid`
 
 Activos del repo para repetir esa construccion:
 
 - [f100.sql](/C:/HT/stp-apex/apex/exports/f100.sql)
 - [002_wksp_stp_page2_grid.sql](/C:/HT/stp-apex/db/install/002_wksp_stp_page2_grid.sql)
+- [001_app101_page2_grid_demo_reset.sql](/C:/HT/stp-apex/db/patches/001_app101_page2_grid_demo_reset.sql)
 - [app101_page_00002_editable_grid.sql](/C:/HT/stp-apex/apex/snippets/app101_page_00002_editable_grid.sql)
+- [app101_navigation_page2.sql](/C:/HT/stp-apex/apex/snippets/app101_navigation_page2.sql)
+- [app101-smoke.spec.js](/C:/HT/stp-apex/tests/playwright/app101-smoke.spec.js)
+- [apex-e2e-playbook.md](/C:/HT/stp-apex/docs/apex-e2e-playbook.md)
+
+## App 101: mapa de paginas para validacion
+
+Paginas navegables:
+
+- `9999` login
+- `1` home
+- `2` editable grid
+
+Pagina no navegable de forma aislada:
+
+- `0` global page
+
+Regla:
+
+- cuando el usuario pida "probar todas las paginas" de `101`, se prueban `9999`, `1` y `2`
+- `page 0` se valida indirectamente porque sus componentes se renderizan dentro de las paginas navegables
 
 ## Regla practica para futuras tareas
 

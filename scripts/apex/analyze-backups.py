@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import zipfile
+from typing import Iterable
 
 
 APP_NAME_RE = re.compile(
@@ -31,7 +32,17 @@ def read_text(archive: zipfile.ZipFile, member: str) -> str:
     return archive.read(member).decode("utf-8", "ignore")
 
 
-def summarize_zip(path: str) -> dict[str, object]:
+def matches_tokens(token_hits: dict[str, list[str]], mode: str) -> bool:
+    if not token_hits:
+        return True
+    if mode == "all":
+        return all(token_hits.values())
+    return any(token_hits.values())
+
+
+def summarize_zip(path: str, tokens: Iterable[str] | None = None) -> dict[str, object]:
+    search_tokens = [token for token in (tokens or []) if token]
+
     with zipfile.ZipFile(path) as archive:
         members = archive.namelist()
         sql_members = [name for name in members if name.endswith(".sql")]
@@ -52,12 +63,17 @@ def summarize_zip(path: str) -> dict[str, object]:
         plug_sources: collections.Counter[str] = collections.Counter()
         process_types: collections.Counter[str] = collections.Counter()
         page_names: list[str] = []
+        token_hits: dict[str, list[str]] = {token: [] for token in search_tokens}
 
         for member in sql_members:
             text = read_text(archive, member)
             create_calls.update(call.lower() for call in CREATE_CALL_RE.findall(text))
             plug_sources.update(PLUG_SOURCE_RE.findall(text))
             process_types.update(PROCESS_TYPE_RE.findall(text))
+            lowered = text.lower()
+            for token in search_tokens:
+                if token.lower() in lowered:
+                    token_hits[token].append(member)
             if "/application/pages/" in member:
                 page_match = PAGE_NAME_RE.search(text)
                 if page_match:
@@ -78,10 +94,14 @@ def summarize_zip(path: str) -> dict[str, object]:
             "plug_source_types": plug_sources.most_common(),
             "process_types": process_types.most_common(10),
             "page_names": page_names[:20],
+            "token_hits": token_hits,
         }
 
 
-def to_markdown(items: list[dict[str, object]]) -> str:
+def to_markdown(
+    items: list[dict[str, object]], search_tokens: Iterable[str] | None = None
+) -> str:
+    search_tokens = [token for token in (search_tokens or []) if token]
     lines = []
     lines.append("# APEX Backup Analysis")
     lines.append("")
@@ -110,6 +130,12 @@ def to_markdown(items: list[dict[str, object]]) -> str:
         lines.append(f"- Pages: `{item['page_count']}`")
         lines.append(f"- Representative pages: {pages}")
         lines.append(f"- Top create calls: {calls}")
+        if search_tokens:
+            lines.append("- Search hits:")
+            for token in search_tokens:
+                hits = item["token_hits"].get(token, [])
+                rendered_hits = ", ".join(hits[:5]) or "-"
+                lines.append(f"  - `{token}`: {rendered_hits}")
         lines.append("")
 
     return "\n".join(lines)
@@ -128,6 +154,18 @@ def parse_args() -> argparse.Namespace:
         default="markdown",
         help="Output format. Defaults to markdown.",
     )
+    parser.add_argument(
+        "--contains",
+        action="append",
+        default=[],
+        help="Only keep backups whose SQL contains this token. Can be repeated.",
+    )
+    parser.add_argument(
+        "--match-mode",
+        choices=("any", "all"),
+        default="any",
+        help="How repeated --contains filters are applied. Defaults to any.",
+    )
     return parser.parse_args()
 
 
@@ -139,11 +177,17 @@ def main() -> int:
         print(f"No backups found for pattern: {pattern}", file=sys.stderr)
         return 1
 
-    items = [summarize_zip(path) for path in paths]
+    items = [summarize_zip(path, tokens=args.contains) for path in paths]
+    if args.contains:
+        items = [
+            item
+            for item in items
+            if matches_tokens(item["token_hits"], args.match_mode)
+        ]
     if args.format == "json":
         print(json.dumps(items, indent=2, ensure_ascii=False))
     else:
-        print(to_markdown(items))
+        print(to_markdown(items, search_tokens=args.contains))
     return 0
 
 

@@ -9,10 +9,8 @@ Estado verificado en la base:
 - workspace: `STP`
 - owner/parsing schema observado en las apps de referencia: `WKSP_STP`
 - APEX: `24.2.14`
-- apps importadas actualmente en el workspace desde estos respaldos:
-  - `100`
-  - `102` a `124`
-- la app `101` no existe en este momento y debe recrearse cuando se necesite
+- la app `101` existe actualmente y es la app usada para validacion E2E
+- los respaldos `f100.zip` a `f124.zip` siguen siendo la biblioteca fuente para reconstruir o copiar componentes
 
 ## Como estan armados los respaldos
 

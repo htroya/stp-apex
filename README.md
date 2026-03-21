@@ -9,6 +9,7 @@ Antes de volver a investigar la conexion, revisar:
 - `docs/oracle-connection-playbook.md`
 - `docs/apex-backup-catalog.md`
 - `docs/apex-component-playbook.md`
+- `docs/apex-e2e-playbook.md`
 
 Ese playbook deja documentado:
 
@@ -20,6 +21,7 @@ Ese playbook deja documentado:
 - los limites de `SQLcl` y de la sesion de VS Code
 - las rutas locales del wallet y de `DBTools`
 - el flujo exacto para crear, exportar, importar y probar una app APEX
+- como ejecutar Playwright contra la app `101` y su `Interactive Grid`
 
 Los documentos nuevos agregan:
 
@@ -37,6 +39,8 @@ Se agregaron scripts para no repetir trabajo:
 - `scripts/apex/analyze-backups.py`
 - `tests/playwright/app101-smoke.spec.js`
 - `playwright.config.js`
+- `apex/snippets/app101_navigation_page2.sql`
+- `db/patches/001_app101_page2_grid_demo_reset.sql`
 
 Flujo recomendado:
 
@@ -44,7 +48,16 @@ Flujo recomendado:
 2. Preferir export `.sql` para una importacion fiel; usar split `.zip` cuando haga falta clonar una app base.
 3. Exportarla con `scripts/apex/export-app.ps1`.
 4. Crear otra app a partir de ese export con `scripts/apex/import-app.ps1`.
-5. Validar con Playwright al menos la carga del login.
+5. Validar con Playwright `login`, `home` y el componente critico.
+
+Prueba E2E validada para la app `101`:
+
+```powershell
+$env:APP_URL='https://gc6116f6f9e2d14-hhhhhtroya.adb.us-ashburn-1.oraclecloudapps.com/ords/r/stp/test101'
+$env:APP_USERNAME='STP'
+$env:APP_PASSWORD='***solo en la sesion actual***'
+npm run test:app101
+```
 
 Flujo de analisis recomendado:
 
@@ -77,14 +90,19 @@ Flujo de analisis recomendado:
 ## Estado APEX actual
 
 - App `100` (`test`) existe en el workspace `STP`.
+- App `101` (`test101`) existe y es la app de validacion E2E actual.
 - El export base funcional disponible en el repo se genera como `apex/exports/f100.sql`.
 - El respaldo `f101.zip` existe, pero su alias exportado quedo inconsistente (`TEST100`), asi que no debe usarse como base canonica.
 - Las apps `102` a `124` quedaron importadas en el workspace `STP` y funcionan como biblioteca viva de componentes.
-- La app `101` debe recrearse desde `f100.sql` cuando se necesite la version con `Interactive Grid`.
+- La app `101` puede recrearse desde `f100.sql` cuando haga falta reconstruirla desde cero.
+- La app `101` ya tiene acceso navegable a `page 2` mediante el `Navigation Menu`.
+- El `Interactive Grid` de `page 2` se valida con Playwright y ya no deja depender la prueba del estado previo del demo data.
 - Conclusion operativa:
   - para clonar apps por automatizacion, usar export SQL completo.
   - el import split por `ORDS` queda como alternativa avanzada y requiere validacion extra.
   - para estudiar componentes, el split `.zip` es la mejor fuente de verdad.
+  - para probar paginas navegables de `101`, usar Playwright sobre `9999`, `1` y `2`; `page 0` es global y no se abre sola.
+  - para entrar a la app `101` por Playwright, usar el usuario APEX `STP`; `ADMIN` no autentica en la app aunque si sirve para cambios de metadata por `ORDS SQL`.
 
 ## Decision sobre GitHub
 
